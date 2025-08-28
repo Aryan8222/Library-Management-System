@@ -1,0 +1,140 @@
+<div class="book-form-container">
+  <!-- Dialog Header -->
+  <div class="form-header">
+    <h2 mat-dialog-title>{{ title }}</h2>
+    <button mat-icon-button mat-dialog-close>
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Dialog Content -->
+  <mat-dialog-content class="form-content">
+    <form [formGroup]="bookForm" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <!-- Title Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Book Title *</mat-label>
+          <input matInput formControlName="title" placeholder="Enter book title">
+          <mat-error *ngIf="isFieldInvalid('title')">
+            {{ getFieldError('title') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <!-- Author Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Author *</mat-label>
+          <input matInput formControlName="author" placeholder="Enter author name">
+          <mat-error *ngIf="isFieldInvalid('author')">
+            {{ getFieldError('author') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row two-columns">
+        <!-- ISBN Field -->
+        <mat-form-field appearance="outline">
+          <mat-label>ISBN *</mat-label>
+          <input matInput formControlName="isbn" placeholder="978-0-123456-78-9">
+          <mat-hint>ISBN-10 or ISBN-13 format</mat-hint>
+          <mat-error *ngIf="isFieldInvalid('isbn')">
+            {{ getFieldError('isbn') }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Genre Field -->
+        <mat-form-field appearance="outline">
+          <mat-label>Genre</mat-label>
+          <mat-select formControlName="genre">
+            <mat-option value="">Select a genre</mat-option>
+            <mat-option *ngFor="let genre of genres" [value]="genre">
+              {{ genre }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row three-columns">
+        <!-- Publication Year Field -->
+        <mat-form-field appearance="outline">
+          <mat-label>Publication Year</mat-label>
+          <input matInput 
+                 type="number" 
+                 formControlName="publicationYear" 
+                 placeholder="2023">
+          <mat-hint>Use negative numbers for BC years</mat-hint>
+          <mat-error *ngIf="isFieldInvalid('publicationYear')">
+            {{ getFieldError('publicationYear') }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Total Copies Field -->
+        <mat-form-field appearance="outline">
+          <mat-label>Total Copies *</mat-label>
+          <input matInput 
+                 type="number" 
+                 formControlName="totalCopies" 
+                 (input)="onTotalCopiesChange()"
+                 min="1">
+          <mat-error *ngIf="isFieldInvalid('totalCopies')">
+            {{ getFieldError('totalCopies') }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Available Copies Field -->
+        <mat-form-field appearance="outline">
+          <mat-label>Available Copies *</mat-label>
+          <input matInput 
+                 type="number" 
+                 formControlName="availableCopies" 
+                 min="0"
+                 [max]="bookForm.get('totalCopies')?.value || 1">
+          <mat-hint>Cannot exceed total copies</mat-hint>
+          <mat-error *ngIf="isFieldInvalid('availableCopies')">
+            {{ getFieldError('availableCopies') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Book Information Display (View Mode) -->
+      <div *ngIf="isViewMode && data.book" class="book-info-section">
+        <mat-divider></mat-divider>
+        <h3>Additional Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Created:</span>
+            <span class="info-value">{{ data.book.createdAt | date:'medium' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Last Updated:</span>
+            <span class="info-value">{{ data.book.updatedAt | date:'medium' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Currently Borrowed:</span>
+            <span class="info-value">{{ (data.book.totalCopies - data.book.availableCopies) }} copies</span>
+          </div>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <!-- Dialog Actions -->
+  <mat-dialog-actions class="form-actions" *ngIf="!isViewMode">
+    <button mat-button (click)="onCancel()" [disabled]="isLoading">
+      Cancel
+    </button>
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onSubmit()" 
+            [disabled]="isLoading || bookForm.invalid">
+      <mat-icon *ngIf="isLoading" class="loading-icon">refresh</mat-icon>
+      {{ isLoading ? 'Saving...' : (isCreateMode ? 'Create Book' : 'Update Book') }}
+    </button>
+  </mat-dialog-actions>
+
+  <!-- View Mode Actions -->
+  <mat-dialog-actions class="form-actions" *ngIf="isViewMode">
+    <button mat-button mat-dialog-close>Close</button>
+  </mat-dialog-actions>
+</div>

@@ -1,0 +1,140 @@
+.book-list-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.no-books-container {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.large-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.no-books-container h3 {
+  margin: 16px 0 8px 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.no-books-container p {
+  font-size: 14px;
+  margin: 0;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.books-table {
+  width: 100%;
+  min-width: 800px;
+}
+
+.books-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.books-table td {
+  padding: 16px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.title-cell {
+  min-width: 200px;
+}
+
+.book-title {
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
+}
+
+.isbn-cell {
+  font-family: monospace;
+  font-size: 12px;
+  color: #666;
+  min-width: 120px;
+}
+
+.genre-chip {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-size: 12px;
+  height: 24px;
+  border-radius: 12px;
+}
+
+.copies-cell {
+  text-align: center;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.actions-cell {
+  min-width: 120px;
+  text-align: center;
+}
+
+.actions-cell button {
+  margin: 0 2px;
+}
+
+.no-data {
+  color: #999;
+  font-style: italic;
+}
+
+/* Status chip styling */
+.mat-chip.mat-primary {
+  background-color: #4caf50;
+  color: white;
+}
+
+.mat-chip.mat-warn {
+  background-color: #f44336;
+  color: white;
+}
+
+.mat-chip mat-icon {
+  font-size: 16px;
+  margin-right: 4px;
+}
+
+/* Row hover effect */
+.books-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .books-table {
+    min-width: 600px;
+  }
+  
+  .title-cell {
+    min-width: 150px;
+  }
+  
+  .isbn-cell {
+    display: none;
+  }
+  
+  .displayedColumns {
+    /* Hide ISBN column on mobile */
+  }
+}
+
+/* Paginator styling */
+.mat-paginator {
+  border-top: 1px solid #e0e0e0;
+  background-color: #fafafa;
+}

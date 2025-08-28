@@ -1,0 +1,189 @@
+.user-list-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.no-users-container {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.large-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.no-users-container h3 {
+  margin: 16px 0 8px 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.no-users-container p {
+  font-size: 14px;
+  margin: 0;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  min-width: 1000px;
+}
+
+.users-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.users-table td {
+  padding: 16px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.name-cell {
+  min-width: 150px;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
+}
+
+.username-cell {
+  font-family: monospace;
+  font-size: 13px;
+  color: #666;
+  min-width: 120px;
+}
+
+.email-cell {
+  font-size: 13px;
+  color: #555;
+  min-width: 180px;
+}
+
+.phone-cell {
+  font-size: 13px;
+  color: #666;
+  min-width: 120px;
+}
+
+.date-cell {
+  font-size: 12px;
+  color: #888;
+  min-width: 100px;
+}
+
+.membership-chip {
+  font-size: 11px;
+  height: 22px;
+  border-radius: 11px;
+}
+
+.membership-chip.mat-chip {
+  min-height: 22px;
+}
+
+.actions-cell {
+  min-width: 160px;
+  text-align: center;
+}
+
+.actions-cell button {
+  margin: 0 2px;
+}
+
+.no-data {
+  color: #999;
+  font-style: italic;
+}
+
+/* Status chip styling */
+.mat-chip.mat-primary {
+  background-color: #4caf50;
+  color: white;
+}
+
+.mat-chip.mat-warn {
+  background-color: #f44336;
+  color: white;
+}
+
+.mat-chip.mat-accent {
+  background-color: #ff9800;
+  color: white;
+}
+
+.mat-chip mat-icon {
+  font-size: 16px;
+  margin-right: 4px;
+}
+
+/* Row styling */
+.users-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.inactive-row {
+  background-color: #fafafa;
+  opacity: 0.7;
+}
+
+.inactive-row:hover {
+  background-color: #f0f0f0;
+}
+
+.selected-chip {
+  font-weight: bold;
+  
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .users-table {
+    min-width: 900px;
+  }
+  
+  .phone-cell {
+    display: none;
+  }
+}
+
+@media (max-width: 968px) {
+  .users-table {
+    min-width: 800px;
+  }
+  
+  .email-cell {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .users-table {
+    min-width: 600px;
+  }
+  
+  .date-cell {
+    display: none;
+  }
+}
+
+/* Paginator styling */
+.mat-paginator {
+  border-top: 1px solid #e0e0e0;
+  background-color: #fafafa;
+}

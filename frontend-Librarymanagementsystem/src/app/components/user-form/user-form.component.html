@@ -1,0 +1,161 @@
+<div class="user-form-container">
+  <!-- Dialog Header -->
+  <div class="form-header">
+    <h2 mat-dialog-title>{{ title }}</h2>
+    <button mat-icon-button mat-dialog-close>
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Dialog Content -->
+  <mat-dialog-content class="form-content">
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+      
+      <!-- Personal Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">Personal Information</h3>
+        
+        <div class="form-row two-columns">
+          <!-- First Name Field -->
+          <mat-form-field appearance="outline">
+            <mat-label>First Name *</mat-label>
+            <input matInput formControlName="firstName" placeholder="Enter first name">
+            <mat-error *ngIf="isFieldInvalid('firstName')">
+              {{ getFieldError('firstName') }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Last Name Field -->
+          <mat-form-field appearance="outline">
+            <mat-label>Last Name *</mat-label>
+            <input matInput formControlName="lastName" placeholder="Enter last name">
+            <mat-error *ngIf="isFieldInvalid('lastName')">
+              {{ getFieldError('lastName') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row two-columns">
+          <!-- Username Field -->
+          <mat-form-field appearance="outline">
+            <mat-label>Username *</mat-label>
+            <input matInput formControlName="username" placeholder="Enter username">
+            <mat-hint>Letters, numbers, and underscores only</mat-hint>
+            <mat-error *ngIf="isFieldInvalid('username')">
+              {{ getFieldError('username') }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Email Field -->
+          <mat-form-field appearance="outline">
+            <mat-label>Email *</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="Enter email address">
+            <mat-error *ngIf="isFieldInvalid('email')">
+              {{ getFieldError('email') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row two-columns">
+          <!-- Phone Field -->
+          <mat-form-field appearance="outline">
+            <mat-label>Phone</mat-label>
+            <input matInput formControlName="phone" placeholder="Enter phone number">
+            <mat-hint>Optional - include country code if needed</mat-hint>
+            <mat-error *ngIf="isFieldInvalid('phone')">
+              {{ getFieldError('phone') }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Status Field -->
+          <mat-form-field appearance="outline" *ngIf="!isCreateMode">
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="isActive">
+              <mat-option [value]="true">Active</mat-option>
+              <mat-option [value]="false">Inactive</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Address Field -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Address</mat-label>
+            <textarea matInput 
+                      formControlName="address" 
+                      placeholder="Enter full address"
+                      rows="3"></textarea>
+            <mat-hint>Optional - full address including city, state, zip</mat-hint>
+            <mat-error *ngIf="isFieldInvalid('address')">
+              {{ getFieldError('address') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Membership Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">Membership Information</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Membership Type *</mat-label>
+            <mat-select formControlName="membershipType">
+              <mat-option *ngFor="let type of membershipTypes" [value]="type.value">
+                <div class="membership-option">
+                  <span class="membership-label">{{ type.label }}</span>
+                  <span class="membership-description">{{ type.description }}</span>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-hint>{{ getMembershipDescription(userForm.get('membershipType')?.value) }}</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- User Information Display (View Mode) -->
+      <div *ngIf="isViewMode && data.user" class="form-section">
+        <h3 class="section-title">Account Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">User ID:</span>
+            <span class="info-value">{{ data.user.id }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Account Created:</span>
+            <span class="info-value">{{ data.user.createdAt | date:'medium' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Last Updated:</span>
+            <span class="info-value">{{ data.user.updatedAt | date:'medium' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Account Status:</span>
+            <span class="info-value" [ngClass]="data.user.isActive ? 'status-active' : 'status-inactive'">
+              {{ data.user.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <!-- Dialog Actions -->
+  <mat-dialog-actions class="form-actions" *ngIf="!isViewMode">
+    <button mat-button (click)="onCancel()" [disabled]="isLoading">
+      Cancel
+    </button>
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onSubmit()" 
+            [disabled]="isLoading || userForm.invalid">
+      <mat-icon *ngIf="isLoading" class="loading-icon">refresh</mat-icon>
+      {{ isLoading ? 'Saving...' : (isCreateMode ? 'Create User' : 'Update User') }}
+    </button>
+  </mat-dialog-actions>
+
+  <!-- View Mode Actions -->
+  <mat-dialog-actions class="form-actions" *ngIf="isViewMode">
+    <button mat-button mat-dialog-close>Close</button>
+  </mat-dialog-actions>
+</div>

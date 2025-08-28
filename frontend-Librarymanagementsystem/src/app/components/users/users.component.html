@@ -1,0 +1,72 @@
+<div class="users-container">
+  <!-- Header -->
+  <div class="users-header">
+    <h1>User Management</h1>
+    <button mat-raised-button color="primary" (click)="openAddUserDialog()">
+      <mat-icon>person_add</mat-icon>
+      Add New User
+    </button>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <mat-card class="search-card">
+    <mat-card-content>
+      <div class="search-filters">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search users...</mat-label>
+          <input matInput 
+                 [(ngModel)]="searchTerm" 
+                 (input)="onSearch()"
+                 placeholder="Username, name, or email">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Membership Type</mat-label>
+          <mat-select [(value)]="selectedMembershipType" (selectionChange)="onMembershipTypeChange()">
+            <mat-option value="">All Types</mat-option>
+            <mat-option *ngFor="let type of membershipTypes" [value]="type.value">
+              {{ type.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Status</mat-label>
+          <mat-select [(value)]="selectedStatus" (selectionChange)="onStatusChange()">
+            <mat-option value="">All Status</mat-option>
+            <mat-option *ngFor="let status of statusOptions" [value]="status.value">
+              {{ status.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-button color="primary" (click)="clearFilters()" class="clear-filters-btn">
+          <mat-icon>clear</mat-icon>
+          Clear Filters
+        </button>
+      </div>
+
+      <div class="results-info">
+        <span class="results-count">
+          Showing {{ filteredUsers.length }} of {{ users.length }} users
+        </span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-progress-spinner diameter="50" mode="indeterminate"></mat-progress-spinner>
+    <p>Loading users...</p>
+  </div>
+
+  <!-- Users List -->
+  <app-user-list 
+    *ngIf="!isLoading"
+    [users]="filteredUsers"
+    (userUpdated)="onUserUpdated()"
+    (userDeleted)="onUserDeleted()"
+    (userStatusChanged)="onUserStatusChanged()">
+  </app-user-list>
+</div>

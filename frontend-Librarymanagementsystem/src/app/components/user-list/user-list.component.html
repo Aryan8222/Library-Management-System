@@ -1,0 +1,109 @@
+<div class="user-list-container">
+  <!-- No users message -->
+  <div *ngIf="users.length === 0" class="no-users-container">
+    <mat-icon class="large-icon">people</mat-icon>
+    <h3>No users found</h3>
+    <p>Try adjusting your search criteria or add some users to get started.</p>
+  </div>
+
+  <!-- Users table -->
+  <div *ngIf="users.length > 0" class="table-container">
+    <table mat-table [dataSource]="dataSource" matSort class="users-table">
+      
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+        <td mat-cell *matCellDef="let user" class="name-cell">
+          <div class="user-name">{{ getFullName(user) }}</div>
+        </td>
+      </ng-container>
+
+      <!-- Username Column -->
+      <ng-container matColumnDef="username">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Username</th>
+        <td mat-cell *matCellDef="let user" class="username-cell">{{ user.username }}</td>
+      </ng-container>
+
+      <!-- Email Column -->
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+        <td mat-cell *matCellDef="let user" class="email-cell">{{ user.email }}</td>
+      </ng-container>
+
+      <!-- Membership Type Column -->
+      <ng-container matColumnDef="membershipType">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Membership</th>
+        <td mat-cell *matCellDef="let user">
+          <mat-chip  [color]="getMembershipTypeChip(user.membershipType).color" 
+                     [ngClass]="{ 'selected-chip': getMembershipTypeChip(user.membershipType).color !== '' }"
+                     class="membership-chip">
+            {{ getMembershipTypeChip(user.membershipType).text }}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Phone Column -->
+      <ng-container matColumnDef="phone">
+        <th mat-header-cell *matHeaderCellDef>Phone</th>
+        <td mat-cell *matCellDef="let user" class="phone-cell">
+          <span *ngIf="user.phone; else noPhone">{{ user.phone }}</span>
+          <ng-template #noPhone>
+            <span class="no-data">-</span>
+          </ng-template>
+        </td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let user">
+          <mat-chip [color]="getStatusChip(user).color" selected>
+            <mat-icon>{{ getStatusChip(user).icon }}</mat-icon>
+            {{ getStatusChip(user).text }}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Created Date Column -->
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Joined</th>
+        <td mat-cell *matCellDef="let user" class="date-cell">{{ formatDate(user.createdAt) }}</td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let user" class="actions-cell">
+          <button mat-icon-button (click)="openViewDialog(user)" matTooltip="View Details">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button mat-icon-button (click)="openEditDialog(user)" matTooltip="Edit User">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button 
+                  (click)="toggleUserStatus(user)" 
+                  [matTooltip]="user.isActive ? 'Deactivate User' : 'Activate User'"
+                  [color]="user.isActive ? 'warn' : 'primary'">
+            <mat-icon>{{ user.isActive ? 'block' : 'check_circle' }}</mat-icon>
+          </button>
+          <button mat-icon-button 
+                  (click)="deleteUser(user)" 
+                  matTooltip="Delete User" 
+                  color="warn">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+          [class.inactive-row]="!row.isActive"></tr>
+    </table>
+
+    <!-- Paginator -->
+    <mat-paginator 
+      [pageSizeOptions]="[5, 10, 25, 50]" 
+      showFirstLastButtons>
+    </mat-paginator>
+  </div>
+</div>

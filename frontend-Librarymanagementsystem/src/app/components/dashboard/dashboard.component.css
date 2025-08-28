@@ -1,0 +1,294 @@
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  color: #333;
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.loading-container p,
+.error-container p {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #666;
+}
+
+.error-container mat-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+/* Statistics Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+.stat-card mat-card-content {
+  padding: 24px;
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.stat-icon {
+  font-size: 24px;
+  margin-right: 12px;
+}
+
+.stat-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+}
+
+.stat-numbers {
+  margin-bottom: 16px;
+}
+
+.main-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1;
+}
+
+.sub-number {
+  font-size: 14px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.stat-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #666;
+  text-align: right;
+}
+
+/* Card specific colors */
+.books-card .stat-icon {
+  color: #2196F3;
+}
+
+.users-card .stat-icon {
+  color: #FF9800;
+}
+
+.borrowed-card .stat-icon {
+  color: #4CAF50;
+}
+
+.overdue-card .stat-icon {
+  color: #F44336;
+}
+
+.overdue-number {
+  color: #F44336;
+}
+
+/* Alerts Section */
+.alerts-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.alert-card {
+  border-left: 4px solid #2196F3;
+}
+
+.overdue-alert {
+  border-left-color: #F44336;
+}
+
+.alert-card mat-card-header {
+  padding-bottom: 16px;
+}
+
+.alert-card mat-card-title {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.alert-card mat-card-title mat-icon {
+  margin-right: 8px;
+}
+
+.alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alert-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+.overdue-item {
+  background-color: #fff5f5;
+  border-color: #fed7d7;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.book-title {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.user-name {
+  font-size: 12px;
+  color: #666;
+}
+
+.item-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.item-date {
+  font-size: 12px;
+  color: #666;
+}
+
+.fine-amount {
+  font-size: 12px;
+  color: #F44336;
+  font-weight: 500;
+}
+
+/* No Alerts Card */
+.no-alerts-card {
+  grid-column: 1 / -1;
+  text-align: center;
+}
+
+.no-alerts-content {
+  padding: 40px 20px;
+}
+
+.large-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.no-alerts-content h3 {
+  margin: 16px 0 8px 0;
+  color: #333;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.no-alerts-content p {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 15px;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .alerts-section {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .alert-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .item-details {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-card mat-card-content {
+    padding: 16px;
+  }
+  
+  .main-number {
+    font-size: 28px;
+  }
+  
+  .stat-header {
+    margin-bottom: 12px;
+  }
+}

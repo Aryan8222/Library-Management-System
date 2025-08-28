@@ -1,0 +1,206 @@
+<div class="borrow-records-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>Borrowing Records</h1>
+    <button mat-raised-button color="primary" (click)="toggleBorrowForm()">
+      <mat-icon>{{ showBorrowForm ? 'cancel' : 'add' }}</mat-icon>
+      {{ showBorrowForm ? 'Cancel' : 'Borrow Book' }}
+    </button>
+  </div>
+
+  <!-- Borrow Form -->
+  <mat-card *ngIf="showBorrowForm" class="borrow-form-card">
+    <mat-card-header>
+      <mat-card-title>Borrow a Book</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="borrowForm" (ngSubmit)="onBorrowBook()">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Select User</mat-label>
+            <mat-select formControlName="userId">
+              <mat-option *ngFor="let user of users" [value]="user.id">
+                {{ user.firstName }} {{ user.lastName }} ({{ user.username }})
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Select Book</mat-label>
+            <mat-select formControlName="bookId">
+              <mat-option *ngFor="let book of availableBooks" [value]="book.id">
+                {{ book.title }} by {{ book.author }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="form-actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="borrowForm.invalid">
+            <mat-icon>book</mat-icon>
+            Borrow Book
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Filters -->
+  <mat-card class="filter-card">
+    <mat-card-content>
+      <div class="filters">
+        <mat-form-field appearance="outline">
+          <mat-label>Filter by Status</mat-label>
+          <mat-select [(value)]="selectedStatus" (selectionChange)="onStatusFilter()">
+            <mat-option value="">All Status</mat-option>
+            <mat-option *ngFor="let status of statusOptions" [value]="status.value">
+              {{ status.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Filter by User</mat-label>
+          <mat-select [(value)]="selectedUser" (selectionChange)="onUserFilter()">
+            <mat-option value="">All Users</mat-option>
+            <mat-option *ngFor="let user of users" [value]="user.id">
+              {{ user.firstName }} {{ user.lastName }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-button color="primary" (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+          Clear Filters
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-progress-spinner diameter="50" mode="indeterminate"></mat-progress-spinner>
+    <p>Loading borrow records...</p>
+  </div>
+
+  <!-- Records Table -->
+  <div *ngIf="!isLoading" class="table-container">
+    <!-- Empty State -->
+    <div *ngIf="dataSource.data.length === 0" class="empty-state">
+      <mat-icon>assignment</mat-icon>
+      <h3>No Borrow Records Found</h3>
+      <p>No books have been borrowed yet. Use the "Borrow Book" button above to create the first borrow record.</p>
+    </div>
+
+    <!-- Table with data -->
+    <div *ngIf="dataSource.data.length > 0">
+      <table mat-table [dataSource]="dataSource" matSort>
+      
+      <!-- User Column -->
+     <ng-container matColumnDef="user">
+  <th mat-header-cell *matHeaderCellDef mat-sort-header>User</th>
+  <td mat-cell *matCellDef="let record">
+    <span *ngIf="record.user?.firstName; else showUserId">
+      {{ record.user.firstName }} {{ record.user.lastName }}
+    </span>
+    <ng-template #showUserId>
+      <span *ngIf="record.user?.id; else noUser">User ID: {{ record.user.id }}</span>
+      <ng-template #noUser>N/A</ng-template>
+    </ng-template>
+  </td>
+</ng-container>
+
+      <!-- Book Column -->
+     <ng-container matColumnDef="book">
+  <th mat-header-cell *matHeaderCellDef mat-sort-header>Book</th>
+  <td mat-cell *matCellDef="let record">
+    <div class="book-info" *ngIf="record.book?.title; else showBookId">
+      <div class="book-title">{{ record.book.title }}</div>
+      <div class="book-author">by {{ record.book.author }}</div>
+    </div>
+    <ng-template #showBookId>
+      <span *ngIf="record.book?.id; else noBook">Book ID: {{ record.book.id }}</span>
+      <ng-template #noBook>N/A</ng-template>
+    </ng-template>
+  </td>
+</ng-container>
+
+      <!-- Borrow Date Column -->
+      <ng-container matColumnDef="borrowDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Borrowed</th>
+        <td mat-cell *matCellDef="let record">{{ formatDate(record.borrowDate) }}</td>
+      </ng-container>
+
+      <!-- Due Date Column -->
+      <ng-container matColumnDef="dueDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Due Date</th>
+        <td mat-cell *matCellDef="let record" [ngClass]="{'overdue': isOverdue(record)}">
+          {{ formatDate(record.dueDate) }}
+          <div *ngIf="isOverdue(record)" class="overdue-text">
+            {{ getDaysOverdue(record) }} days overdue
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Return Date Column -->
+      <ng-container matColumnDef="returnDate">
+        <th mat-header-cell *matHeaderCellDef>Returned</th>
+        <td mat-cell *matCellDef="let record">
+          <span *ngIf="record.returnDate; else notReturned">
+            {{ formatDate(record.returnDate) }}
+          </span>
+          <ng-template #notReturned>-</ng-template>
+        </td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let record">
+          <mat-chip [color]="getStatusChip(record.status).color" selected>
+            <mat-icon>{{ getStatusChip(record.status).icon }}</mat-icon>
+            {{ getStatusChip(record.status).text }}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Fine Amount Column -->
+      <ng-container matColumnDef="fineAmount">
+        <th mat-header-cell *matHeaderCellDef>Fine</th>
+        <td mat-cell *matCellDef="let record">
+          <span *ngIf="record.fineAmount > 0; else noFine" class="fine-amount">
+            ${{ record.fineAmount }}
+          </span>
+          <ng-template #noFine>-</ng-template>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let record">
+          <button *ngIf="record.status === 'BORROWED'" 
+                  mat-icon-button 
+                  (click)="returnBook(record)" 
+                  matTooltip="Return Book"
+                  color="primary">
+            <mat-icon>assignment_return</mat-icon>
+          </button>
+          <button *ngIf="record.status === 'BORROWED'" 
+                  mat-icon-button 
+                  (click)="extendDueDate(record)" 
+                  matTooltip="Extend Due Date"
+                  color="accent">
+            <mat-icon>schedule</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" showFirstLastButtons></mat-paginator>
+    </div>
+  </div>
+</div>
