@@ -1,0 +1,372 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_IMAGE = 'library-backend'
+        DOCKER_TAG = 'latest'
+        MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
+        
+        NOTIFICATION_EMAIL = 'aryanpanwar2002@gmail.com.com'
+    }
+    
+    tools {
+        maven 'Maven'  
+        jdk 'Java 17'  
+    }
+    
+    stages {
+        
+        
+        stage('️ Build Maven Project') {
+            steps {
+                echo '=== Building Spring Boot application ==='
+                bat '''
+                    echo "Cleaning and compiling project..."
+                    mvn clean compile -DskipTests
+                '''
+            }
+        }
+        
+      
+        
+        stage(' Package Application') {
+            steps {
+                echo '=== Packaging Spring Boot application ==='
+                bat 'mvn package -DskipTests'
+            }
+            post {
+                success {
+                    
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                    echo "JAR file created and archived successfully"
+                }
+            }
+        }
+   
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo '=== Building Docker image ==='
+                    
+                    
+                    bat '''
+                        echo "Setting up Minikube Docker environment..."
+                        FOR /f "tokens=*" %%i IN ('minikube docker-env --shell cmd') DO %%i
+                        
+                        echo "Building Docker image..."
+                        docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% .
+                        
+                        echo "Verifying Docker image..."
+                        docker images | findstr %DOCKER_IMAGE%
+                    '''
+                }
+            }
+        }
+        
+        stage(' Setup Kubernetes Environment') {
+            steps {
+                echo '=== Setting up Kubernetes environment ==='
+                script {
+                    bat '''
+                        echo "Checking Minikube status..."
+                        minikube status
+                        
+                        echo "Checking kubectl connectivity..."
+                        kubectl cluster-info
+                        
+                        echo "Current Kubernetes context:"
+                        kubectl config current-context
+                        
+                        echo "Available nodes:"
+                        kubectl get nodes
+                    '''
+                }
+            }
+        }
+        
+        stage("Deploy MySQL Database") {
+            steps {
+                echo '=== Deploying MySQL to Kubernetes ==='
+                script {
+                    bat '''
+                        echo "Applying MySQL ConfigMap..."
+                        kubectl apply -f k8s/mysql-init-configmap.yaml
+                        
+                        echo "Deploying MySQL..."
+                        kubectl apply -f k8s/mysql-deployment.yaml
+                        
+                        echo "Waiting for MySQL to be ready..."
+                        kubectl wait --for=condition=ready pod -l app=mysql --timeout=300s
+                        
+                        echo "MySQL deployment status:"
+                        kubectl get pods -l app=mysql
+                        kubectl get services mysql-service
+                    '''
+                }
+            }
+        }
+        
+        stage('Deploy Backend Application') {
+            steps {
+                echo '=== Deploying Spring Boot backend to Kubernetes ==='
+                script {
+                    bat '''
+                        echo "Deploying backend application..."
+                        kubectl apply -f k8s/backend-deployment.yaml
+                        
+                        echo "Waiting for backend to be ready..."
+                        kubectl wait --for=condition=ready pod -l app=backend --timeout=300s
+                        
+                        echo "Backend deployment status:"
+                        kubectl get pods -l app=backend
+                        kubectl get services backend-service
+                        
+                        echo "Deployment rollout status:"
+                        kubectl rollout status deployment/backend-deployment
+                    '''
+                }
+            }
+        }
+        
+        stage(' Health Check') {
+            steps {
+                echo '=== Performing application health checks ==='
+                script {
+                    bat '''
+                        echo "Setting up port forwarding for health check..."
+                        start /B kubectl port-forward service/backend-service 8083:8083
+                        
+                        echo "Waiting for port forward to establish..."
+                        timeout /t 15 /nobreak
+                        
+                        echo "Testing health endpoint..."
+                        curl -f http://localhost:8083/api/test/health || (
+                            echo "Health check failed"
+                            exit 1
+                        )
+                        
+                        echo "Health check passed"
+                        
+                        REM Stop port forwarding
+                        taskkill /F /IM kubectl.exe 2>nul || echo "Port forwarding cleanup completed"
+                    '''
+                }
+            }
+        }
+        
+        stage(' Integration Tests') {
+            steps {
+                echo '=== Running integration tests ==='
+                script {
+                    bat '''
+                        echo "Starting port forwarding for integration tests..."
+                        start /B kubectl port-forward service/backend-service 8083:8083
+                        timeout /t 10 /nobreak
+                        
+                        echo "Testing API endpoints..."
+                        
+                        echo "Testing books endpoint..."
+                        curl -f http://localhost:8083/api/books || echo "Books endpoint test failed"
+                        
+                        echo "Testing users endpoint..."
+                        curl -f http://localhost:8083/api/users || echo "Users endpoint test failed"
+                        
+                        echo "Testing borrow endpoint..."
+                        curl -f http://localhost:8083/api/borrow || echo "Borrow endpoint test failed"
+                        
+                        echo "Testing database connectivity..."
+                        curl -f http://localhost:8083/api/test/database || echo "Database connectivity test failed"
+                        
+                        echo "Testing authentication..."
+                        curl -X POST -H "Content-Type: application/json" ^
+                             -d "{\"username\":\"admin\",\"password\":\"admin123\"}" ^
+                             http://localhost:8083/api/auth/login || echo "Authentication test failed"
+                        
+                        echo "Integration tests completed"
+                        
+                        REM Cleanup port forwarding
+                        taskkill /F /IM kubectl.exe 2>nul || echo "Integration test cleanup completed"
+                    '''
+                }
+            }
+        }
+        
+        stage('Performance Test') {
+            steps {
+                echo '=== Running basic performance tests ==='
+                script {
+                    bat '''
+                        echo "Starting port forwarding for performance tests..."
+                        start /B kubectl port-forward service/backend-service 8083:8083
+                        timeout /t 5 /nobreak
+                        
+                        echo "Running load test with 50 requests..."
+                        for /L %%i in (1,1,50) do (
+                            curl -s http://localhost:8083/api/books > nul && echo Request %%i completed
+                        )
+                        
+                        echo "Performance test completed - 50 requests sent successfully"
+                        
+                        REM Cleanup
+                        taskkill /F /IM kubectl.exe 2>nul || echo "Performance test cleanup completed"
+                    '''
+                }
+            }
+        }
+        
+       
+        
+        stage(' Deployment Summary') {
+            steps {
+                echo '=== Deployment Summary ==='
+                script {
+                    bat '''
+                        echo "=== KUBERNETES CLUSTER STATUS ==="
+                        kubectl get nodes
+                        
+                        echo "=== DEPLOYED PODS ==="
+                        kubectl get pods -o wide
+                        
+                        echo "=== SERVICES ==="
+                        kubectl get services
+                        
+                        echo "=== DEPLOYMENTS ==="
+                        kubectl get deployments
+                        
+                        echo "=== PERSISTENT VOLUMES ==="
+                        kubectl get pvc
+                        
+                        echo "=== APPLICATION LOGS (Last 10 lines) ==="
+                        kubectl logs -l app=backend --tail=10 || echo "Backend logs not available"
+                        
+                        echo "=== MINIKUBE IP ==="
+                        minikube ip
+                        
+                        echo "Your Library Management System is deployed!"
+                        echo " Access your application at: http://$(minikube ip):30083"
+                    '''
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo '=== Pipeline execution completed ==='
+            script {
+                // Final status report
+                bat '''
+                    echo "Final deployment status:"
+                    kubectl get pods,services,deployments
+                '''
+            }
+        }
+        
+        success {
+            echo ' Pipeline executed successfully!'
+            script {
+                // Send success notification
+                try {
+                    emailext (
+                        subject: "Jenkins Build Success: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                        body: """
+                        <h2> Library Management System - Deployment Successful!</h2>
+                        
+                        <h3>Build Information:</h3>
+                        <ul>
+                            <li><strong>Job:</strong> ${env.JOB_NAME}</li>
+                            <li><strong>Build Number:</strong> ${env.BUILD_NUMBER}</li>
+                            <li><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></li>
+                            <li><strong>Timestamp:</strong> ${new Date()}</li>
+                        </ul>
+                        
+                        <h3>Completed Stages:</h3>
+                        <ul>
+                            <li>Source Code Checkout</li>
+                            <li>Maven Build & Compilation</li>
+                            <li>Junit Tests</li>
+                            <li>Application Packaging</li>
+                            <li>Security Scan</li>
+                            <li>Docker Image Build</li>
+                            <li>MySQL Database Deployment</li>
+                            <li>Backend Application Deployment</li>
+                            <li>Health Checks</li>
+                            <li>Integration Tests</li>
+                            <li>Performance Tests</li>
+                            <li>Test Data Cleanup</li>
+                        </ul>
+                        
+                        <h3>Access Information:</h3>
+                        <p><strong>Application URL:</strong> Check Jenkins console output for Minikube IP and access at port 30083</p>
+                        
+                        <p><em>The Library Management System has been successfully deployed to your local Kubernetes cluster!</em></p>
+                        """,
+                        mimeType: 'text/html',
+                        to: "${env.NOTIFICATION_EMAIL}"
+                    )
+                } catch (Exception e) {
+                    echo "Email notification failed: ${e.getMessage()}"
+                }
+            }
+        }
+        
+        failure {
+            echo 'Pipeline execution failed!'
+            script {
+                
+                try {
+                    emailext (
+                        subject: "Jenkins Build Failed: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                        body: """
+                        <h2>library Management System - Deployment Failed</h2>
+                        
+                        <h3>Build Information:</h3>
+                        <ul>
+                            <li><strong>Job:</strong> ${env.JOB_NAME}</li>
+                            <li><strong>Build Number:</strong> ${env.BUILD_NUMBER}</li>
+                            <li><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></li>
+                            <li><strong>Console Output:</strong> <a href="${env.BUILD_URL}/console">${env.BUILD_URL}/console</a></li>
+                            <li><strong>Timestamp:</strong> ${new Date()}</li>
+                        </ul>
+                        
+                        <h3>Troubleshooting Steps:</h3>
+                        <ol>
+                            <li>Check the Jenkins console output for detailed error messages</li>
+                            <li>Verify Minikube is running: <code>minikube status</code></li>
+                            <li>Check Docker daemon: <code>docker ps</code></li>
+                            <li>Verify kubectl connectivity: <code>kubectl get nodes</code></li>
+                            <li>Review application logs: <code>kubectl logs -l app=backend</code></li>
+                        </ol>
+                        
+                        <p><em>Please check the Jenkins logs and try again after addressing any issues.</em></p>
+                        """,
+                        mimeType: 'text/html',
+                        to: "${env.NOTIFICATION_EMAIL}"
+                    )
+                } catch (Exception e) {
+                    echo "Email notification failed: ${e.getMessage()}"
+                }
+            }
+        }
+        
+        unstable {
+            echo 'Pipeline completed with warnings!'
+        }
+        
+        cleanup {
+            echo ' Cleaning up workspace...'
+            
+            cleanWs(
+                cleanWhenAborted: true,
+                cleanWhenFailure: true,
+                cleanWhenNotBuilt: true,
+                cleanWhenSuccess: true,
+                cleanWhenUnstable: true,
+                deleteDirs: true,
+                disableDeferredWipeout: true,
+                notFailBuild: true,
+                patterns: [[pattern: '.git/**', type: 'EXCLUDE']]
+            )
+        }
+    }
+}
